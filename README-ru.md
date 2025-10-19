@@ -1,0 +1,21 @@
+<p align="center">
+    <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="img/logo.svg">
+        <source media="(prefers-color-scheme: light)" srcset="img/logo_inverted.svg">
+        <img alt="Project logo" src="img/logo.svg">
+    </picture><br>
+</p>
+
+
+# LTDA Console
+Программа удалённого управления моим проектом <a href="https://github.com/lethanner/ltda-prime">LTDA Prime</a>, написанная на Qt.  
+Находится в состоянии разработки (версия 0.1-alpha).  
+
+
+<p align="center"><img src="img/screenshot-v0.1-alpha.png"></p>
+
+
+**Несколько экземпляров LTDA Console может быть одновременно подключено к одному устройству, находящемуся в одной локальной сети.**  
+## Technical information
+Программа автоматически загружает список аудиоканалов с устройства, используя TCP-сокет и формат данных JSON. Этот же механизм используется и для передачи команд управления.
+Положения фейдеров и слайдеров баланса, кнопки MUTE, а также индикаторы уровня синхронизируются с устройством в реальном времени. Программа получает пакеты синхронизации с помощью Multicast UDP и собственного протокола.

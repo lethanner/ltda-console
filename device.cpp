@@ -171,3 +171,18 @@ void Device::sendWiFiCretendials(QString& ssid, QString& password) {
                                                     .arg(ssid, password).toUtf8();
     sendTCP(command);
 }
+
+QStringList Device::getAvailableComPorts() {
+    QStringList ports;
+    const auto avail = QSerialPortInfo::availablePorts();
+
+    qDebug() << "Enumerating" << avail.count() << "ports";
+    for (const QSerialPortInfo &port : avail) {
+        ports << port.portName();
+        qDebug() << "Port:" << port.portName()
+                 << "Description:" << port.description()
+                 << "Manufacturer:" << port.manufacturer();
+    }
+
+    return ports;
+}

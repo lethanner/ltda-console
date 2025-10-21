@@ -154,6 +154,10 @@ void MainWindow::openWiFiConfigurator() {
 
 void MainWindow::openConnectionWindow() {
     ConnectionDialog *dialog = new ConnectionDialog(this);
+    connect(dialog, &ConnectionDialog::comPortListRequest, [dialog, this] {
+        dialog->setAvailableComPorts(ltda->getAvailableComPorts());
+    });
+
     if (dialog->exec() == QDialog::Accepted) {
         ltda->connectTo(ConnectionDialog::inputData.ip_addr,
                         ConnectionDialog::inputData.port);

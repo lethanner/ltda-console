@@ -11,6 +11,8 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonParseError>
+#include <QtSerialPort/QSerialPort>
+#include <QtSerialPort/QSerialPortInfo>
 
 class Device : public QObject {
   Q_OBJECT
@@ -29,6 +31,8 @@ public:
     void setFaderPosition(quint16 channel, qint8 value);
     void toggleMute(quint16 channel);
     void sendWiFiCretendials(QString& ssid, QString& password);
+
+    QStringList getAvailableComPorts();
 
   private:
     const QByteArray signature = "LTDA";

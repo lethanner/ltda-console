@@ -3,6 +3,7 @@
 #include "connectiondialog.h"
 #include "wifidialog.h"
 #include <QPixmap>
+#include <QSignalBlocker>
 
 MainWindow::MainWindow(QWidget *parent)
         : QMainWindow(parent) {
@@ -69,19 +70,18 @@ MainWindow::MainWindow(QWidget *parent)
 
     ltda = new Device(this);
     connect(ltda, &Device::connected, this, [this]() {
-        ltda->requestMixerData();
+        loadChannels();
     });
-    connect(ltda, &Device::udpDataReady, this, &MainWindow::processLiveData);
-    connect(ltda, &Device::responseReady, this, &MainWindow::processJSONResponse);
+    connect(ltda, &Device::liveDataReady, this, &MainWindow::processLiveData);
 }
 
 MainWindow::~MainWindow() {
 }
 
 
-void MainWindow::processLiveData(QByteArray& data)
+void MainWindow::processLiveData(QByteArray data)
 {
-    int pos = 6;
+    int pos = 2;
     for (int i = 0; i < mixer->count() - 1; ++i) {
         // check channel signature
         if (data[pos++] != 'C' || data[pos++] != 'H') {
@@ -100,8 +100,14 @@ void MainWindow::processLiveData(QByteArray& data)
     }
 }
 
-void MainWindow::processJSONResponse(QJsonObject& data)
+void MainWindow::loadChannels()
 {
+    QJsonObject data = ltda->requestMixerData();
+    if (data.isEmpty()) {
+        qWarning() << "Failed to load device channels";
+        return;
+    }
+
     if (data.contains("channels") && data["channels"].isArray()) {
         QJsonArray channels = data["channels"].toArray();
 
@@ -131,7 +137,8 @@ void MainWindow::processJSONResponse(QJsonObject& data)
                                                             color, obj["st"].toBool(),
                                                             index, mixerWidget);
                 mixer->addWidget(newChannel);
-                connect(newChannel, &MixerChannel::faderMoved, this, [this](const quint16 number, int8_t value){
+                connect(newChannel, &MixerChannel::faderMoved, this, [this, newChannel](const quint16 number, int8_t value){
+                    QSignalBlocker blocker(newChannel);
                     ltda->setFaderPosition(number, value);
                 });
                 connect(newChannel, &MixerChannel::muteClicked, this, [this](const quint16 number){
@@ -153,13 +160,7 @@ void MainWindow::openWiFiConfigurator() {
 }
 
 void MainWindow::openConnectionWindow() {
-    ConnectionDialog *dialog = new ConnectionDialog(this);
-    connect(dialog, &ConnectionDialog::comPortListRequest, [dialog, this] {
-        dialog->setAvailableComPorts(ltda->getAvailableComPorts());
-    });
+    ConnectionDialog *dialog = new ConnectionDialog(ltda, this);
 
-    if (dialog->exec() == QDialog::Accepted) {
-        ltda->connectTo(ConnectionDialog::inputData.ip_addr,
-                        ConnectionDialog::inputData.port);
-    }
+    dialog->exec();
 }

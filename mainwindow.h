@@ -41,8 +41,8 @@ private:
     Device* ltda;
 
 private slots:
-    void processLiveData(QByteArray& data);
-    void processJSONResponse(QJsonObject& data);
+    void processLiveData(QByteArray data);
+    void loadChannels();
 
     void openWiFiConfigurator();
     void openConnectionWindow();

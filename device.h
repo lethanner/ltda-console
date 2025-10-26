@@ -13,6 +13,7 @@
 #include <QJsonParseError>
 #include <QtSerialPort/QSerialPort>
 #include <QtSerialPort/QSerialPortInfo>
+#include <QEventLoop>
 
 class Device : public QObject {
   Q_OBJECT
@@ -24,49 +25,62 @@ public:
         Normal, Timeout, InvalidDevice, Specific
     };
 
-    void connectTo(const QString &host, quint16 port);
+    enum ConnectionInterface {
+        NONE, LAN, UART
+    };
+
+    void connectLAN(const QString &host, quint16 port);
+    void connectUART(const QString &port, qint32 baud);
     void disconnect();
 
-    void requestMixerData();
-    void setFaderPosition(quint16 channel, qint8 value);
-    void toggleMute(quint16 channel);
-    void sendWiFiCretendials(QString& ssid, QString& password);
+    QJsonObject requestMixerData();
+    bool setFaderPosition(quint16 channel, qint8 value);
+    bool toggleMute(quint16 channel);
+    bool sendWiFiCretendials(QString& ssid, QString& password);
 
     QStringList getAvailableComPorts();
 
   private:
     const QByteArray signature = "LTDA";
+    const uint timeout = 1000;
 
-    void sendTCP(QByteArray& data);
+    QJsonObject commandTxRx(const QByteArray& data, bool wait = true);
+    void initDevice();
+
+    QSerialPort *serial;
+    QByteArray *uartBuffer;
+    quint16 livePacketLength = 0;
+
     QTcpSocket *tcp;
     QUdpSocket *udp;
 
-    QTimer *keepAliveTicker;
+    QTimer *pingTicker;
     QTimer *timeoutTicker;
-    int tcpTimeout = 1000;
-    int latency = 0;
-    bool throttleFlag = false;
+    bool timeoutFlag = false;
+    //int latency = 0;
 
-    bool commPending = false;
+    ConnectionInterface activeInterface = ConnectionInterface::NONE;
+    QByteArray responseData;
+    QEventLoop *responseWait;
 
 signals:
     void connected();
-    void disconnected(DisconnectReason reason,
-                      QAbstractSocket::SocketError *error = nullptr);
+    void disconnected(DisconnectReason reason, const QString& error = "");
     void feedbackConnFailed();
 
-    void udpDataReady(QByteArray& data);
-    void responseReady(QJsonObject& data);
-    void responseStatus(QString status, QString why);
+    void liveDataReady(QByteArray data);
+    void responseReady(QByteArray data);
+    //void responseStatus(QString status, QString why);
 
 private slots:
     void onTcpConnected();
     void onTcpReadyRead();
     void onUdpReadyRead();
     void onTcpError(QAbstractSocket::SocketError error);
-    void onTimeout();
+    void onSerialReadyRead();
+    void onSerialError(QSerialPort::SerialPortError error);
 
-    void sendKeepAlive();
+    void ping();
 };
 
 #endif  // DEVICE_H

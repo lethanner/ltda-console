@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QApplication>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QScrollArea>
@@ -12,6 +13,8 @@
 #include <QMenuBar>
 #include <QMenu>
 #include <QAction>
+#include <QMessageBox>
+#include <QCursor>
 #include "device.h"
 
 class MainWindow : public QMainWindow {
@@ -38,13 +41,20 @@ private:
     QHBoxLayout* mixer;
     QScrollArea* mixerScrollArea;
 
-    Device* ltda;
+    QAction *connectAction;
+    QAction *disconnectAction;
+    QAction *wifiConfAction;
 
+    Device* ltda;
+    void loadChannels();
 private slots:
     void processLiveData(QByteArray data);
-    void loadChannels();
 
     void openWiFiConfigurator();
     void openConnectionWindow();
+    void disconnectDevice();
+
+    void connected();
+    void disconnected(Device::DisconnectReason reason, const QString& error);
 };
 #endif  // MAINWINDOW_H

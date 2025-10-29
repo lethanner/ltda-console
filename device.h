@@ -31,7 +31,7 @@ public:
 
     void connectLAN(const QString &host, quint16 port);
     void connectUART(const QString &port, qint32 baud);
-    void disconnect();
+    void end();
 
     QJsonObject requestMixerData();
     bool setFaderPosition(quint16 channel, qint8 value);

@@ -42,6 +42,7 @@ Device::Device(QObject *parent)
 
         tcp->close();
         pingTicker->stop();
+        timeoutTicker->stop();
         //uartBuffer->clear();
         if (serial->isOpen())
             serial->close();
@@ -107,11 +108,6 @@ void Device::connectUART(const QString &port, qint32 baud) {
     }
 
     initDevice();
-}
-
-void Device::disconnect() {
-    qInfo() << "Disconnected";
-    emit disconnected(Normal);
 }
 
 void Device::onSerialError(QSerialPort::SerialPortError error) {
@@ -294,4 +290,9 @@ bool Device::sendWiFiCretendials(QString& ssid, QString& password) {
     QByteArray command = QString("{\"cmd\":\"wifi-sta\",\"ssid\":\"%1\",\"pass\":\"%2\"}")
                                 .arg(ssid, password).toUtf8();
     return (commandTxRx(command)["status"].toString() == "ok");
+}
+
+void Device::end() {
+    qInfo() << "Disconnected";
+    emit disconnected(Normal);
 }

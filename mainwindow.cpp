@@ -21,11 +21,17 @@ MainWindow::MainWindow(QWidget *parent)
     menuBar = new QMenuBar();
     QMenu *fileContext = menuBar->addMenu("File");
     QMenu *deviceContext = menuBar->addMenu("Device");
-    QAction *connectAction = new QAction("Connect...", this);
-    QAction *wifiConfAction = new QAction("Configure Wi-Fi...", this);
+    connectAction = new QAction("Connect...", this);
+    disconnectAction = new QAction("Disconnect", this);
+    wifiConfAction = new QAction("Configure Wi-Fi...", this);
     deviceContext->addAction(connectAction);
+    deviceContext->addAction(disconnectAction);
+    deviceContext->addSeparator();
     deviceContext->addAction(wifiConfAction);
+    disconnectAction->setEnabled(false);
+    wifiConfAction->setEnabled(false);
     connect(connectAction, &QAction::triggered, this, &MainWindow::openConnectionWindow);
+    connect(disconnectAction, &QAction::triggered, this, &MainWindow::disconnectDevice);
     connect(wifiConfAction, &QAction::triggered, this, &MainWindow::openWiFiConfigurator);
     setMenuBar(menuBar);
 
@@ -69,15 +75,56 @@ MainWindow::MainWindow(QWidget *parent)
     layout->addWidget(sidePanelSplitter);
 
     ltda = new Device(this);
-    connect(ltda, &Device::connected, this, [this]() {
-        loadChannels();
-    });
+    connect(ltda, &Device::connected, this, &MainWindow::connected);
+    connect(ltda, &Device::disconnected, this, &MainWindow::disconnected);
     connect(ltda, &Device::liveDataReady, this, &MainWindow::processLiveData);
 }
 
 MainWindow::~MainWindow() {
 }
 
+
+void MainWindow::connected() {
+    connectAction->setEnabled(false);
+    disconnectAction->setEnabled(true);
+    wifiConfAction->setEnabled(true);
+    QApplication::restoreOverrideCursor();
+
+    loadChannels();
+}
+
+void MainWindow::disconnected(Device::DisconnectReason reason, const QString& error) {
+    connectAction->setEnabled(true);
+    disconnectAction->setEnabled(false);
+    wifiConfAction->setEnabled(false);
+    QApplication::restoreOverrideCursor();
+
+    QString message;
+    switch (reason) {
+    case Device::Normal:
+        break;
+    case Device::InvalidDevice:
+        message = "Your address points on an invalid device.";
+        break;
+    case Device::Timeout:
+        message = "Connection lost.";
+        break;
+    case Device::Specific:
+        message = error;
+        break;
+    }
+    if (!message.isEmpty())
+        QMessageBox::critical(this, "LTDA Console", message);
+
+    // remove all channels from mixer
+    QLayoutItem *item;
+    while ((item = mixer->takeAt(0)) != nullptr) {
+        if (QWidget* widget = item->widget()) {
+            widget->deleteLater();
+        }
+        delete item;
+    }
+}
 
 void MainWindow::processLiveData(QByteArray data)
 {
@@ -163,4 +210,10 @@ void MainWindow::openConnectionWindow() {
     ConnectionDialog *dialog = new ConnectionDialog(ltda, this);
 
     dialog->exec();
+    connectAction->setEnabled(false);
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+}
+
+void MainWindow::disconnectDevice() {
+    ltda->end();
 }

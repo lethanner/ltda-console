@@ -14,7 +14,7 @@ MainWindow::MainWindow(QWidget *parent)
     central = new QWidget(this);
     setCentralWidget(central);
 
-    layout = new QHBoxLayout(central);
+    layout = new QVBoxLayout(central);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
@@ -73,6 +73,13 @@ MainWindow::MainWindow(QWidget *parent)
     sidePanelSplitter->setStretchFactor(1, 1);
     sidePanelSplitter->setCollapsible(0, true);
     layout->addWidget(sidePanelSplitter);
+
+    // version string
+    QLabel *version = new QLabel("v0.1.2-alpha | #MakePrismaTechniciansGreatAgain", this);
+    version->setMaximumHeight(30);
+    version->setAlignment(Qt::AlignCenter);
+    version->setStyleSheet("color:gray;font-size:12px;");
+    layout->addWidget(version);
 
     ltda = new Device(this);
     connect(ltda, &Device::connected, this, &MainWindow::connected);

@@ -25,7 +25,7 @@ public:
   ~MainWindow();
 private:
   QWidget* central;
-    QHBoxLayout* layout;
+    QVBoxLayout* layout;
   QSplitter* sidePanelSplitter;
 
     QMenuBar* menuBar;

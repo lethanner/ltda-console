@@ -216,9 +216,10 @@ void MainWindow::openWiFiConfigurator() {
 void MainWindow::openConnectionWindow() {
     ConnectionDialog *dialog = new ConnectionDialog(ltda, this);
 
-    dialog->exec();
-    connectAction->setEnabled(false);
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+    if (dialog->exec()) {
+        connectAction->setEnabled(false);
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+    }
 }
 
 void MainWindow::disconnectDevice() {

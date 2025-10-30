@@ -1,14 +1,17 @@
 #include "connectiondialog.h"
 
-ConnectionDialog::InputData ConnectionDialog::inputData = {
-    Device::ConnectionInterface::LAN, "192.168.4.1", 12344, "", 115200
-};
-
 ConnectionDialog::ConnectionDialog(Device *_dev, QWidget *parent)
     : QDialog(parent), dev(_dev)
 {
     setFixedSize(300, 200);
     setWindowTitle(tr("Connect..."));
+
+    // default values
+    inputData.selection = selectTcp;
+    inputData.ip_addr = "192.168.4.1";
+    inputData.port = 12344;
+    inputData.comPort = "";
+    inputData.baudrate = 115200;
 
     layout = new QVBoxLayout(this);
     inputsLayout = new QHBoxLayout();
@@ -16,7 +19,10 @@ ConnectionDialog::ConnectionDialog(Device *_dev, QWidget *parent)
     portLayout = new QVBoxLayout();
     comPortLayout = new QHBoxLayout();
 
-    bool isLanChecked = (inputData.iface == Device::ConnectionInterface::LAN);
+    i_LAN = new LAN();
+    i_UART = new UART();
+
+    bool isLanChecked = (inputData.selection == selectTcp);
     selectTcp = new QRadioButton("Through LAN", this);
     selectTcp->setChecked(isLanChecked);
     lblIpAddr = new QLabel("IP address:", this);
@@ -35,7 +41,7 @@ ConnectionDialog::ConnectionDialog(Device *_dev, QWidget *parent)
     portLayout->addWidget(lblPort);
     portLayout->addWidget(inputPort);
 
-    bool isUartChecked = (inputData.iface == Device::ConnectionInterface::UART);
+    bool isUartChecked = (inputData.selection == selectUart);
     selectUart = new QRadioButton("Through UART", this);
     selectUart->setChecked(isUartChecked);
     selectComPort = new QComboBox(this);
@@ -61,14 +67,14 @@ ConnectionDialog::ConnectionDialog(Device *_dev, QWidget *parent)
     });
     connect(selectUart, &QRadioButton::clicked, [this](bool checked){
         if (checked)
-            getAvailableComPorts();
+            i_UART->getAvailableComPorts();
         refreshComPort->setEnabled(checked);
         selectComPort->setEnabled(checked);
         inputIpAddr->setEnabled(!checked);
         inputPort->setEnabled(!checked);
     });
     connect(refreshComPort, &QPushButton::clicked, [this]() {
-        getAvailableComPorts();
+        i_UART->getAvailableComPorts();
     });
 
     inputsLayout->addLayout(ipLayout);
@@ -82,21 +88,24 @@ ConnectionDialog::ConnectionDialog(Device *_dev, QWidget *parent)
 }
 
 void ConnectionDialog::onSave() {
-    inputData.iface = selectTcp->isChecked() ? Device::LAN : Device::UART;
+    //inputData.iface = selectTcp->isChecked() ? Device::LAN : Device::UART;
     inputData.ip_addr = inputIpAddr->text();
     inputData.port = inputPort->value();
     inputData.comPort = selectComPort->currentText();
 
-    if (inputData.iface == Device::LAN)
-        dev->connectLAN(inputData.ip_addr, inputData.port);
-    else if (inputData.iface == Device::UART)
-        dev->connectUART(inputData.comPort, inputData.baudrate);
+    i_UART->setPort(inputData.comPort, inputData.baudrate);
+    i_LAN->setHost(inputData.ip_addr, inputData.port);
+
+    if (selectTcp->isChecked())
+        dev->begin(i_LAN);
+    else
+        dev->begin(i_UART);
 
     accept();
 }
 
 void ConnectionDialog::getAvailableComPorts() {
-    QStringList ports = dev->getAvailableComPorts();
+    QStringList ports = i_UART->getAvailableComPorts();
 
     selectComPort->clear();
     selectComPort->setEnabled(false);

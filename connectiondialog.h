@@ -12,8 +12,11 @@
 #include <QtWidgets/QRadioButton>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QComboBox>
-#include "device.h"
 #include <QStringList>
+
+#include "device.h"
+#include "uart.h"
+#include "lan.h"
 
 class ConnectionDialog : public QDialog {
     Q_OBJECT
@@ -46,17 +49,18 @@ private:
     QDialogButtonBox *settingsConfirm;
 
     Device* dev;
+    UART* i_UART;
+    LAN* i_LAN;
 
     void getAvailableComPorts();
 
     struct InputData {
-        Device::ConnectionInterface iface;
+        QRadioButton* selection;
         QString ip_addr;
         quint16 port;
         QString comPort;
         quint32 baudrate;
-    };
-    static InputData inputData;
+    } inputData;
 };
 
 #endif  // CONNECTIONDIALOG_H

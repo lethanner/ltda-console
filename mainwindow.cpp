@@ -82,8 +82,8 @@ MainWindow::MainWindow(QWidget *parent)
     layout->addWidget(version);
 
     ltda = new Device(this);
-    connect(ltda, &Device::connected, this, &MainWindow::connected);
-    connect(ltda, &Device::disconnected, this, &MainWindow::disconnected);
+    connect(ltda, &Device::deviceReady, this, &MainWindow::connected);
+    //connect(ltda->iface, &DeviceInterface::disconnected, this, &MainWindow::disconnected);
     connect(ltda, &Device::liveDataReady, this, &MainWindow::processLiveData);
 }
 
@@ -100,7 +100,7 @@ void MainWindow::connected() {
     loadChannels();
 }
 
-void MainWindow::disconnected(Device::DisconnectReason reason, const QString& error) {
+void MainWindow::disconnected(DeviceInterface::DisconnectReason reason, const QString& error) {
     connectAction->setEnabled(true);
     disconnectAction->setEnabled(false);
     wifiConfAction->setEnabled(false);
@@ -108,15 +108,15 @@ void MainWindow::disconnected(Device::DisconnectReason reason, const QString& er
 
     QString message;
     switch (reason) {
-    case Device::Normal:
+    case DeviceInterface::Normal:
         break;
-    case Device::InvalidDevice:
+    case DeviceInterface::InvalidDevice:
         message = "Your address points on an invalid device.";
         break;
-    case Device::Timeout:
+    case DeviceInterface::Timeout:
         message = "Connection lost.";
         break;
-    case Device::Specific:
+    case DeviceInterface::Specific:
         message = error;
         break;
     }

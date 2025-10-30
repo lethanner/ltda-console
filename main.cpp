@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QPalette>
+#include <QIcon>
 
 int main(int argc, char *argv[]) {
   QApplication a(argc, argv);
@@ -20,6 +21,7 @@ int main(int argc, char *argv[]) {
   a.setPalette(dark);
 
   MainWindow w;
+  w.setWindowIcon(QIcon(":/img/icon.ico"));
   w.show();
   return a.exec();
 }

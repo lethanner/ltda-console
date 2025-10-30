@@ -10,7 +10,7 @@
 
 # LTDA Console
 Remote control application for my <a href="https://github.com/lethanner/ltda-prime">LTDA Prime</a> project, written in Qt.  
-Currently under development (version 0.1.1-alpha).  
+Currently under development (version 0.1.2-alpha).  
 
 
 <p align="center"><img src="img/screenshot-v0.1-alpha.png"></p>

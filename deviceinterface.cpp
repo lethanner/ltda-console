@@ -15,16 +15,17 @@ DeviceInterface::DeviceInterface(QObject *parent)
         timeoutFlag = true;
     });
     connect(pingTicker, &QTimer::timeout, this, &DeviceInterface::ping);
+}
 
-    connect(this, &DeviceInterface::disconnected, this, [this](DisconnectReason reason,
-                                                               const QString& error) {
-        qDebug() << "Disconnecting";
-        if (!error.isEmpty())
-            qWarning() << error;
+void DeviceInterface::_disconnect(DisconnectReason reason, const QString& error) {
+    if (!error.isEmpty())
+        qWarning() << error;
 
-        timeoutTicker->stop();
-        pingTicker->stop();
-    });
+    timeoutTicker->stop();
+    pingTicker->stop();
+
+    qDebug() << "Interface stopped";
+    emit disconnected(reason, error);
 }
 
 void DeviceInterface::completeInitialization(QJsonObject& devInfo) {

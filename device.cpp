@@ -4,8 +4,20 @@ Device::Device(QObject *parent) : QObject{ parent } {
 
 }
 
-void Device::begin(DeviceInterface *_iface) {
-    iface = _iface;
+void Device::setInterface(DeviceInterface *iface) {
+    this->iface = iface;
+
+    if (connect(iface, &DeviceInterface::disconnected, this, &Device::disconnected, Qt::UniqueConnection)) {
+        qDebug() << "Attached 'disconnected' signal";
+    }
+    if (connect(iface, &DeviceInterface::liveDataReady, this, &Device::liveDataReady, Qt::UniqueConnection)) {
+        qDebug() << "Attached 'liveDataReady' signal";
+    }
+}
+
+void Device::begin() {
+    if (!iface) return;
+
     if (iface->_connect()) {
         static const QByteArray infoRequest = "{\"cmd\":\"info\"}";
         qDebug() << "Requesting device information...";
@@ -18,22 +30,20 @@ void Device::begin(DeviceInterface *_iface) {
 
         if (dev["i"].toString() != "LTDA") {
             qWarning() << "Nice try. Disconnecting";
-            end(DeviceInterface::InvalidDevice);
+            iface->_disconnect(DeviceInterface::InvalidDevice);
             return;
         }
         qInfo() << dev["v"].toString();
 
         iface->completeInitialization(dev);
 
-        emit deviceReady();
+        emit connected();
     }
 }
 
-void Device::end(DeviceInterface::DisconnectReason reason) {
-
-    emit iface->disconnected(reason);
-    if (reason == DeviceInterface::Normal)
-        qInfo() << "Disconnected by user request";
+void Device::end() {
+    iface->_disconnect(DeviceInterface::Normal);
+    qInfo() << "Disconnected by user request";
 }
 
 QJsonObject Device::requestMixerData() {

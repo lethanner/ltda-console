@@ -11,10 +11,9 @@ public:
     explicit Device(QObject *parent = nullptr);
     ~Device() = default;
 
-    void begin(DeviceInterface *_iface);
-    void end(DeviceInterface::DisconnectReason reason = DeviceInterface::Normal);
-
-    DeviceInterface *iface = nullptr;
+    void setInterface(DeviceInterface *iface);
+    void begin();
+    void end();
 
     QJsonObject requestMixerData();
     bool sendWiFiCretendials(QString& ssid, QString& password);
@@ -23,12 +22,13 @@ public:
     bool toggleMute(quint16 channel);
 
 private:
-    // DeviceInterface *iface = nullptr;
+    DeviceInterface *iface = nullptr;
 
 signals:
-    void deviceReady();
+    void connected();
     void liveDataReady(QByteArray data);
-    //void responseReady(QByteArray data);
+    void disconnected(DeviceInterface::DisconnectReason reason,
+                      const QString& error = "");
 };
 
 #endif

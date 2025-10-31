@@ -7,29 +7,31 @@ LAN::LAN() {
     connect(udp, &QUdpSocket::readyRead, this, &LAN::onUdpReadyRead);
     connect(tcp, &QTcpSocket::readyRead, this, &LAN::onTcpReadyRead);
     connect(tcp, &QTcpSocket::errorOccurred, this, &LAN::onTcpError);
-    connect(this, &DeviceInterface::disconnected, this, [this](DisconnectReason reason,
-                                                               const QString& error) {
-        if (tcp->isOpen()) {
-            if (reason == Timeout || !error.isEmpty())
-                tcp->abort();
-            else
-                tcp->close();
-        }
-
-        if (udp->isOpen())
-            udp->close();
-    });
 }
 
 bool LAN::_connect() {
     qInfo() << QString("Connecting to %1:%2...").arg(host).arg(port);
 
     tcp->connectToHost(host, port);
-    bool result = tcp->waitForConnected(5000);
+    bool result = tcp->waitForConnected();
 
-    qInfo() << (result ? "TCP connection established" : "Failed to connect");
+    qInfo() << "TCP connection" << (result ? "established" : "failed");
 
     return result;
+}
+
+void LAN::_disconnect(DisconnectReason reason, const QString& error) {
+    if (tcp->isOpen()) {
+        if (reason == Timeout || !error.isEmpty())
+            tcp->abort();
+        else
+            tcp->close();
+    }
+
+    if (udp->isOpen())
+        udp->close();
+
+    DeviceInterface::_disconnect(reason, error);
 }
 
 void LAN::send(const QByteArray& data) {
@@ -61,7 +63,8 @@ void LAN::onTcpReadyRead() {
 }
 
 void LAN::onTcpError(QAbstractSocket::SocketError error) {
-    emit disconnected(Specific, tcp->errorString());
+    qDebug() << "TCP error occured" << tcp->errorString();
+    _disconnect(Specific, tcp->errorString());
 }
 
 void LAN::onUdpReadyRead() {

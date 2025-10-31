@@ -82,8 +82,8 @@ MainWindow::MainWindow(QWidget *parent)
     layout->addWidget(version);
 
     ltda = new Device(this);
-    connect(ltda, &Device::deviceReady, this, &MainWindow::connected);
-    //connect(ltda->iface, &DeviceInterface::disconnected, this, &MainWindow::disconnected);
+    connect(ltda, &Device::connected, this, &MainWindow::connected);
+    connect(ltda, &Device::disconnected, this, &MainWindow::disconnected);
     connect(ltda, &Device::liveDataReady, this, &MainWindow::processLiveData);
 }
 
@@ -95,7 +95,6 @@ void MainWindow::connected() {
     connectAction->setEnabled(false);
     disconnectAction->setEnabled(true);
     wifiConfAction->setEnabled(true);
-    QApplication::restoreOverrideCursor();
 
     loadChannels();
 }
@@ -104,7 +103,6 @@ void MainWindow::disconnected(DeviceInterface::DisconnectReason reason, const QS
     connectAction->setEnabled(true);
     disconnectAction->setEnabled(false);
     wifiConfAction->setEnabled(false);
-    QApplication::restoreOverrideCursor();
 
     QString message;
     switch (reason) {
@@ -218,8 +216,11 @@ void MainWindow::openConnectionWindow() {
 
     if (dialog->exec()) {
         connectAction->setEnabled(false);
+
         QApplication::setOverrideCursor(Qt::WaitCursor);
+        ltda->begin();
     }
+    QApplication::restoreOverrideCursor();
 }
 
 void MainWindow::disconnectDevice() {

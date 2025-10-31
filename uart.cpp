@@ -7,11 +7,6 @@ UART::UART() {
 
     connect(serial, &QSerialPort::readyRead, this, &UART::onSerialReadyRead);
     connect(serial, &QSerialPort::errorOccurred, this, &UART::onSerialError);
-    connect(this, &DeviceInterface::disconnected, this, [this](DisconnectReason reason,
-                                                               const QString& error) {
-        if (serial->isOpen())
-            serial->close();
-    });
 }
 
 bool UART::_connect() {
@@ -30,12 +25,19 @@ bool UART::_connect() {
     return result;
 }
 
+void UART::_disconnect(DisconnectReason reason, const QString& error) {
+    if (serial->isOpen())
+        serial->close();
+
+    DeviceInterface::_disconnect(reason, error);
+}
+
 void UART::completeInitialization(QJsonObject& devInfo) {
     livePacketLength = devInfo["lsize"].toInt();
     qInfo() << "Live packet length:" << livePacketLength;
 
     DeviceInterface::completeInitialization(devInfo);
-};
+}
 
 void UART::send(const QByteArray& data) {
     DeviceInterface::send(data);
@@ -96,7 +98,7 @@ void UART::onSerialError(QSerialPort::SerialPortError error) {
     if (error == QSerialPort::NoError)
         return;
 
-    emit disconnected(Specific, serial->errorString());
+    _disconnect(Specific, serial->errorString());
     //serial->clearError();
     //serial->clear();
 }
@@ -107,7 +109,7 @@ QStringList UART::getAvailableComPorts() {
 
     qDebug() << "Enumerating" << avail.count() << "ports";
     for (const QSerialPortInfo &port : avail) {
-        ports << port.portName();
+        ports.append(port.portName());
         qDebug() << "Port:" << port.portName()
                  << "Description:" << port.description()
                  << "Manufacturer:" << port.manufacturer();

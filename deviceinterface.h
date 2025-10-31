@@ -22,24 +22,26 @@ public:
     };
 
     virtual bool _connect() = 0;
-    //virtual void _disconnect() = 0;
+    virtual void _disconnect(DisconnectReason reason, const QString& error = "");
 
     virtual void send(const QByteArray& data) = 0;
-    virtual void ping() = 0;
     QJsonObject receiveBlocking();
 
+    virtual void ping() = 0;
+    //virtual void liveDataReady(QByteArray data) = 0;
+
     virtual void completeInitialization(QJsonObject& devInfo);
+
+private slots:
 
 protected:
     const QByteArray signature = "LTDA";
 
     void responseReady(QByteArray response);
-    //void liveDataReady(QByteArray data);
 
 signals:
+    void disconnected(DisconnectReason reason, const QString& error = "");
     void liveDataReady(QByteArray data);
-    void disconnected(DisconnectReason reason,
-                      const QString& error = "");
 
 private:
     QByteArray responseData;

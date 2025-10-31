@@ -15,7 +15,7 @@ public:
     LAN();
 
     bool _connect() override;
-    //void _disconnect() override;
+    void _disconnect(DisconnectReason reason, const QString& error) override;
 
     void setHost(const QString& _host, quint16 _port)
         { host = _host, port = _port; }

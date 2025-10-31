@@ -6,7 +6,11 @@ ConnectionDialog::ConnectionDialog(Device *_dev, QWidget *parent)
     setFixedSize(300, 200);
     setWindowTitle(tr("Connect..."));
 
+    selectTcp = new QRadioButton("Through LAN", this);
+    selectUart = new QRadioButton("Through UART", this);
+
     // default values
+    // TODO: load from saved configuration
     inputData.selection = selectTcp;
     inputData.ip_addr = "192.168.4.1";
     inputData.port = 12344;
@@ -23,7 +27,6 @@ ConnectionDialog::ConnectionDialog(Device *_dev, QWidget *parent)
     i_UART = new UART();
 
     bool isLanChecked = (inputData.selection == selectTcp);
-    selectTcp = new QRadioButton("Through LAN", this);
     selectTcp->setChecked(isLanChecked);
     lblIpAddr = new QLabel("IP address:", this);
     lblPort = new QLabel("Port:", this);
@@ -42,7 +45,6 @@ ConnectionDialog::ConnectionDialog(Device *_dev, QWidget *parent)
     portLayout->addWidget(inputPort);
 
     bool isUartChecked = (inputData.selection == selectUart);
-    selectUart = new QRadioButton("Through UART", this);
     selectUart->setChecked(isUartChecked);
     selectComPort = new QComboBox(this);
     selectComPort->setEnabled(isUartChecked);
@@ -67,14 +69,14 @@ ConnectionDialog::ConnectionDialog(Device *_dev, QWidget *parent)
     });
     connect(selectUart, &QRadioButton::clicked, [this](bool checked){
         if (checked)
-            i_UART->getAvailableComPorts();
+            getAvailableComPorts();
         refreshComPort->setEnabled(checked);
         selectComPort->setEnabled(checked);
         inputIpAddr->setEnabled(!checked);
         inputPort->setEnabled(!checked);
     });
     connect(refreshComPort, &QPushButton::clicked, [this]() {
-        i_UART->getAvailableComPorts();
+        getAvailableComPorts();
     });
 
     inputsLayout->addLayout(ipLayout);
@@ -96,16 +98,18 @@ void ConnectionDialog::onSave() {
     i_UART->setPort(inputData.comPort, inputData.baudrate);
     i_LAN->setHost(inputData.ip_addr, inputData.port);
 
+    // TODO: maybe I will use button group and save interface
+    // pointers to UserRole zone
     if (selectTcp->isChecked())
-        dev->begin(i_LAN);
+        dev->setInterface(i_LAN);
     else
-        dev->begin(i_UART);
+        dev->setInterface(i_UART);
 
     accept();
 }
 
 void ConnectionDialog::getAvailableComPorts() {
-    QStringList ports = i_UART->getAvailableComPorts();
+    QStringList ports = UART::getAvailableComPorts();
 
     selectComPort->clear();
     selectComPort->setEnabled(false);
@@ -113,6 +117,6 @@ void ConnectionDialog::getAvailableComPorts() {
     if (ports.empty())
         return;
 
-    selectComPort->addItems(ports);
     selectComPort->setEnabled(true);
+    selectComPort->addItems(ports);
 }

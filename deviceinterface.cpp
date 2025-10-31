@@ -46,9 +46,10 @@ QJsonObject DeviceInterface::receiveBlocking() {
     timeoutTicker->stop();
 
     if (responseData.isEmpty()) {
-        if (timeoutFlag)
+        if (timeoutFlag) {
             qWarning() << "Response timed out.";
-        else
+            _disconnect(Timeout);
+        } else
             qWarning() << "Unknown error.";
         return {};
     }

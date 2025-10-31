@@ -26,6 +26,8 @@ bool UART::_connect() {
 }
 
 void UART::_disconnect(DisconnectReason reason, const QString& error) {
+    qDebug() << "Closing UART";
+
     if (serial->isOpen())
         serial->close();
 

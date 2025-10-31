@@ -21,15 +21,15 @@ bool LAN::_connect() {
 }
 
 void LAN::_disconnect(DisconnectReason reason, const QString& error) {
+    qDebug() << "Closing LAN connection";
+
     if (tcp->isOpen()) {
         if (reason == Timeout || !error.isEmpty())
             tcp->abort();
         else
             tcp->close();
     }
-
-    if (udp->isOpen())
-        udp->close();
+    udp->close();
 
     DeviceInterface::_disconnect(reason, error);
 }

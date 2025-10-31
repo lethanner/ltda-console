@@ -95,28 +95,26 @@ void MainWindow::connected() {
     connectAction->setEnabled(false);
     disconnectAction->setEnabled(true);
     wifiConfAction->setEnabled(true);
-    QApplication::restoreOverrideCursor();
 
     loadChannels();
 }
 
-void MainWindow::disconnected(Device::DisconnectReason reason, const QString& error) {
+void MainWindow::disconnected(DeviceInterface::DisconnectReason reason, const QString& error) {
     connectAction->setEnabled(true);
     disconnectAction->setEnabled(false);
     wifiConfAction->setEnabled(false);
-    QApplication::restoreOverrideCursor();
 
     QString message;
     switch (reason) {
-    case Device::Normal:
+    case DeviceInterface::Normal:
         break;
-    case Device::InvalidDevice:
+    case DeviceInterface::InvalidDevice:
         message = "Your address points on an invalid device.";
         break;
-    case Device::Timeout:
+    case DeviceInterface::Timeout:
         message = "Connection lost.";
         break;
-    case Device::Specific:
+    case DeviceInterface::Specific:
         message = error;
         break;
     }
@@ -218,8 +216,11 @@ void MainWindow::openConnectionWindow() {
 
     if (dialog->exec()) {
         connectAction->setEnabled(false);
+
         QApplication::setOverrideCursor(Qt::WaitCursor);
+        ltda->begin();
     }
+    QApplication::restoreOverrideCursor();
 }
 
 void MainWindow::disconnectDevice() {

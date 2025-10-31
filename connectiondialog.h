@@ -10,10 +10,14 @@
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QSpinBox>
 #include <QtWidgets/QRadioButton>
+#include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QComboBox>
-#include "device.h"
 #include <QStringList>
+
+#include "device.h"
+#include "uart.h"
+#include "lan.h"
 
 class ConnectionDialog : public QDialog {
     Q_OBJECT
@@ -31,6 +35,7 @@ private:
     QVBoxLayout *portLayout;
     QHBoxLayout *comPortLayout;
 
+    QButtonGroup *selectGroup;
     QRadioButton* selectTcp;
     QRadioButton* selectUart;
 
@@ -46,17 +51,19 @@ private:
     QDialogButtonBox *settingsConfirm;
 
     Device* dev;
+    static UART* i_UART;
+    static LAN* i_LAN;
 
     void getAvailableComPorts();
 
     struct InputData {
-        Device::ConnectionInterface iface;
+        int selection;
         QString ip_addr;
         quint16 port;
         QString comPort;
         quint32 baudrate;
     };
-    static InputData inputData;
+    static InputData *inputData;
 };
 
 #endif  // CONNECTIONDIALOG_H

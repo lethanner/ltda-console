@@ -55,6 +55,6 @@ private slots:
     void disconnectDevice();
 
     void connected();
-    void disconnected(Device::DisconnectReason reason, const QString& error);
+    void disconnected(DeviceInterface::DisconnectReason reason, const QString& error);
 };
 #endif  // MAINWINDOW_H

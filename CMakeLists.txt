@@ -33,6 +33,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         wifidialog.cpp
         wifidialog.h
         .gitignore
+        lan.h lan.cpp
+        uart.h uart.cpp
+        deviceinterface.h deviceinterface.cpp
 
 
     )

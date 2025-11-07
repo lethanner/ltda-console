@@ -75,7 +75,7 @@ MainWindow::MainWindow(QWidget *parent)
     layout->addWidget(sidePanelSplitter);
 
     // version string
-    QLabel *version = new QLabel("v0.1.2-alpha | #MakePrismaTechniciansGreatAgain", this);
+    QLabel *version = new QLabel("v0.1.3-alpha | #MakePrismaTechniciansGreatAgain", this);
     version->setMaximumHeight(30);
     version->setAlignment(Qt::AlignCenter);
     version->setStyleSheet("color:gray;font-size:12px;");

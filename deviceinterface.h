@@ -37,7 +37,7 @@ private slots:
 protected:
     const QByteArray signature = "LTDA";
 
-    void responseReady(QByteArray response);
+    void responseReady(QByteArray response, bool forceUnblock = false);
 
 signals:
     void disconnected(DisconnectReason reason, const QString& error = "");
@@ -51,6 +51,8 @@ private:
 
     bool timeoutFlag;
     const int timeout = 1000;
+
+    bool forceUnblock = false;
 };
 
 #endif // DEVICEINTERFACE_H

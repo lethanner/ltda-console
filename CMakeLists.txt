@@ -19,6 +19,8 @@ set(PROJECT_SOURCES
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+    find_package(Qt6 REQUIRED COMPONENTS Core)
+
     qt_add_executable(ltda-console
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
@@ -36,6 +38,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         lan.h lan.cpp
         uart.h uart.cpp
         deviceinterface.h deviceinterface.cpp
+        simulator.h simulator.cpp
 
 
     )
@@ -58,6 +61,7 @@ else()
 endif()
 
 target_link_libraries(ltda-console PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::SerialPort)
+target_link_libraries(ltda-console PRIVATE Qt6::Core)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

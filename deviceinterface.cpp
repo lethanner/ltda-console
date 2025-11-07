@@ -42,8 +42,10 @@ void DeviceInterface::send(const QByteArray& data) {
 
 QJsonObject DeviceInterface::receiveBlocking() {
     timeoutTicker->start();
-    responseWait->exec();
+    if (!forceUnblock)
+        responseWait->exec();
     timeoutTicker->stop();
+    forceUnblock = false;
 
     if (responseData.isEmpty()) {
         if (timeoutFlag) {
@@ -65,7 +67,9 @@ QJsonObject DeviceInterface::receiveBlocking() {
     return doc.object();
 }
 
-void DeviceInterface::responseReady(QByteArray response) {
+void DeviceInterface::responseReady(QByteArray response, bool forceUnblock) {
     responseData = response;
-    responseWait->quit();
+    if (!forceUnblock) responseWait->quit();
+
+    this->forceUnblock = forceUnblock;
 }

@@ -3,15 +3,17 @@
 ConnectionDialog::InputData *ConnectionDialog::inputData = nullptr;
 UART *ConnectionDialog::i_UART = nullptr;
 LAN *ConnectionDialog::i_LAN = nullptr;
+Simulator *ConnectionDialog::i_SIM = nullptr;
 
 ConnectionDialog::ConnectionDialog(Device *_dev, QWidget *parent)
     : QDialog(parent), dev(_dev)
 {
-    setFixedSize(300, 200);
+    setFixedSize(300, 220);
     setWindowTitle(tr("Connect..."));
 
     if (!i_LAN) i_LAN = new LAN();
     if (!i_UART) i_UART = new UART();
+    if (!i_SIM) i_SIM = new Simulator();
 
     // default values
     // TODO: load from saved configuration
@@ -21,10 +23,12 @@ ConnectionDialog::ConnectionDialog(Device *_dev, QWidget *parent)
 
     selectTcp = new QRadioButton("Through LAN", this);
     selectUart = new QRadioButton("Through UART", this);
+    selectSim = new QRadioButton("Simulate", this);
 
     selectGroup = new QButtonGroup(this);
     selectGroup->addButton(selectTcp, 0);
     selectGroup->addButton(selectUart, 1);
+    selectGroup->addButton(selectSim, 2);
     QAbstractButton* targetButton = selectGroup->button(inputData->selection);
     if (targetButton)
         targetButton->setChecked(true);
@@ -95,6 +99,7 @@ ConnectionDialog::ConnectionDialog(Device *_dev, QWidget *parent)
     layout->addLayout(inputsLayout);
     layout->addWidget(selectUart);
     layout->addLayout(comPortLayout);
+    layout->addWidget(selectSim);
     layout->addStretch();
     layout->addWidget(settingsConfirm);
 }
@@ -110,8 +115,10 @@ void ConnectionDialog::onSave() {
     // is this a temporarily solution?
     if (selectTcp->isChecked())
         dev->setInterface(i_LAN);
-    else
+    else if (selectUart->isChecked())
         dev->setInterface(i_UART);
+    else
+        dev->setInterface(i_SIM);
 
     accept();
 }

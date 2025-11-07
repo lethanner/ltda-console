@@ -18,6 +18,7 @@
 #include "device.h"
 #include "uart.h"
 #include "lan.h"
+#include "simulator.h"
 
 class ConnectionDialog : public QDialog {
     Q_OBJECT
@@ -38,6 +39,7 @@ private:
     QButtonGroup *selectGroup;
     QRadioButton* selectTcp;
     QRadioButton* selectUart;
+    QRadioButton* selectSim;
 
     QComboBox *selectComPort;
     QPushButton *refreshComPort;
@@ -53,6 +55,7 @@ private:
     Device* dev;
     static UART* i_UART;
     static LAN* i_LAN;
+    static Simulator* i_SIM;
 
     void getAvailableComPorts();
 

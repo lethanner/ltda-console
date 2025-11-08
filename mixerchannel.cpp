@@ -28,17 +28,6 @@ MixerChannel::MixerChannel(QString name, ChannelType type, bool isStereo, quint1
     faderZone = new QHBoxLayout();
     faderZone->setSpacing(1);
     fader = new MixerFader(Qt::Vertical, this);
-    fader->setFixedWidth(40);
-    /*fader->setStyleSheet(R"(
-                         QSlider::groove:vertical {
-                            background-color: #111;
-                         }
-                         QSlider::handle:vertical {
-                            background: transparent;
-                         }
-                        )");*/
-    fader->setRange(-97, 10);
-    fader->setValue(-97);
     faderZone->addWidget(fader);
 
     levelL = new SignalLevelBar(this);
@@ -62,7 +51,7 @@ MixerChannel::MixerChannel(QString name, ChannelType type, bool isStereo, quint1
     layout->addWidget(dBvalue);
 
     mute = new QPushButton("MUTE", this);
-    mute->setFixedHeight(20);
+    mute->setFixedHeight(30);
     mute->setCheckable(true);
     mute->setStyleSheet("QPushButton { background:#100; color:white; }"
                         "QPushButton:checked { background:red; }");

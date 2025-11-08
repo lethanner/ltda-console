@@ -16,6 +16,7 @@
 #include <QMessageBox>
 #include <QCursor>
 #include "device.h"
+#include "mixerwidget.h"
 
 class MainWindow : public QMainWindow {
   Q_OBJECT
@@ -24,21 +25,20 @@ public:
   MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
 private:
-  QWidget* central;
+    QWidget* central;
     QVBoxLayout* layout;
-  QSplitter* sidePanelSplitter;
+    QSplitter* sidePanelSplitter;
 
     QMenuBar* menuBar;
 
     QWidget* sidebarWidget;
     QVBoxLayout* sidebar;
     QLabel* logo;
-    QPushButton* btnConnect;
 
     QWidget* mainWidget;
     QVBoxLayout* mainLayout;
-    QWidget* mixerWidget;
-    QHBoxLayout* mixer;
+
+    MixerWidget* mixer;
     QScrollArea* mixerScrollArea;
 
     QAction *connectAction;
@@ -46,10 +46,7 @@ private:
     QAction *wifiConfAction;
 
     Device* ltda;
-    void loadChannels();
 private slots:
-    void processLiveData(QByteArray data);
-
     void openWiFiConfigurator();
     void openConnectionWindow();
     void disconnectDevice();

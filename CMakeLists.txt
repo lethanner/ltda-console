@@ -39,6 +39,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         uart.h uart.cpp
         deviceinterface.h deviceinterface.cpp
         simulator.h simulator.cpp
+        mixerwidget.h mixerwidget.cpp
 
 
     )

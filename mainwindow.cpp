@@ -1,15 +1,15 @@
 #include "mainwindow.h"
-#include "mixerchannel.h"
 #include "connectiondialog.h"
 #include "wifidialog.h"
 #include <QPixmap>
-#include <QSignalBlocker>
 
 MainWindow::MainWindow(QWidget *parent)
         : QMainWindow(parent) {
 
     setWindowTitle("LTDA Console");
     resize(1000, 600);
+
+    ltda = new Device(this);
 
     central = new QWidget(this);
     setCentralWidget(central);
@@ -55,15 +55,12 @@ MainWindow::MainWindow(QWidget *parent)
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
 
-    mixerWidget = new QWidget();
-    mixer = new QHBoxLayout(mixerWidget);
-    mixer->setContentsMargins(8, 8, 8, 8);
-    mixer->setSpacing(4);
+    mixer = new MixerWidget(ltda, this);
     mixerScrollArea = new QScrollArea();
     mixerScrollArea->setWidgetResizable(true);
     mixerScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     mixerScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    mixerScrollArea->setWidget(mixerWidget);
+    mixerScrollArea->setWidget(mixer);
     mainLayout->addWidget(mixerScrollArea);
 
     // Splitter
@@ -81,10 +78,8 @@ MainWindow::MainWindow(QWidget *parent)
     version->setStyleSheet("color:gray;font-size:12px;");
     layout->addWidget(version);
 
-    ltda = new Device(this);
     connect(ltda, &Device::connected, this, &MainWindow::connected);
     connect(ltda, &Device::disconnected, this, &MainWindow::disconnected);
-    connect(ltda, &Device::liveDataReady, this, &MainWindow::processLiveData);
 }
 
 MainWindow::~MainWindow() {
@@ -96,7 +91,7 @@ void MainWindow::connected() {
     disconnectAction->setEnabled(true);
     wifiConfAction->setEnabled(true);
 
-    loadChannels();
+    mixer->load();
 }
 
 void MainWindow::disconnected(DeviceInterface::DisconnectReason reason, const QString& error) {
@@ -121,86 +116,7 @@ void MainWindow::disconnected(DeviceInterface::DisconnectReason reason, const QS
     if (!message.isEmpty())
         QMessageBox::critical(this, "LTDA Console", message);
 
-    // remove all channels from mixer
-    QLayoutItem *item;
-    while ((item = mixer->takeAt(0)) != nullptr) {
-        if (QWidget* widget = item->widget()) {
-            widget->deleteLater();
-        }
-        delete item;
-    }
-}
-
-void MainWindow::processLiveData(QByteArray data)
-{
-    int pos = 2;
-    for (int i = 0; i < mixer->count() - 1; ++i) {
-        // check channel signature
-        if (data[pos++] != 'C' || data[pos++] != 'H') {
-            qWarning() << "Malformed packet received!";
-            break;
-        }
-
-        QLayoutItem *item = mixer->itemAt(i);
-        if (item && item->widget()) {
-            MixerChannel *channel = qobject_cast<MixerChannel*>(item->widget());
-            int8_t faderPos = data[pos++], levelL = data[pos++],
-                    levelR = data[pos++], balance = data[pos++];
-            bool mute = static_cast<bool>(data[pos++] & 0x01);
-            channel->synchronize(faderPos, balance, mute, levelL, levelR);
-        }
-    }
-}
-
-void MainWindow::loadChannels()
-{
-    QJsonObject data = ltda->requestMixerData();
-    if (data.isEmpty()) {
-        qWarning() << "Failed to load device channels";
-        return;
-    }
-
-    if (data.contains("channels") && data["channels"].isArray()) {
-        QJsonArray channels = data["channels"].toArray();
-
-        quint16 index = 0;
-        for (const auto& channel : channels) {
-            if (channel.isObject()) {
-                QJsonObject obj = channel.toObject();
-                qDebug() << "Appending channel: " << obj["n"].toString();
-
-                QColor color;
-                switch (obj["t"].toInt()) {
-                case 0:
-                    color.setRgb(50, 150, 50);
-                    break;
-                case 1:
-                    color.setRgb(200, 0, 0);
-                    break;
-                case 2:
-                    color.setRgb(170, 170, 0);
-                    break;
-                case 3:
-                    color.setRgb(0, 0, 0);
-                    break;
-                }
-
-                MixerChannel* newChannel = new MixerChannel(obj["n"].toString(),
-                                                            color, obj["st"].toBool(),
-                                                            index, mixerWidget);
-                mixer->addWidget(newChannel);
-                connect(newChannel, &MixerChannel::faderMoved, this, [this, newChannel](const quint16 number, int8_t value){
-                    QSignalBlocker blocker(newChannel);
-                    ltda->setFaderPosition(number, value);
-                });
-                connect(newChannel, &MixerChannel::muteClicked, this, [this](const quint16 number){
-                    ltda->toggleMute(number);
-                });
-            }
-            index++;
-        }
-        mixer->addStretch();
-    }
+    mixer->clear();
 }
 
 void MainWindow::openWiFiConfigurator() {

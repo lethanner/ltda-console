@@ -1,7 +1,7 @@
 #include "mixerchannel.h"
 
-MixerChannel::MixerChannel(QString name, QColor color, bool isStereo, quint16 number, QWidget *parent)
-    : QWidget{ parent }, sequentialNo(number) {
+MixerChannel::MixerChannel(QString name, ChannelType type, bool isStereo, quint16 number, QWidget *parent)
+    : QWidget{ parent }, sequentialNo(number), _type(type) {
     setFixedWidth(70);
     setStyleSheet("background: #222");
 
@@ -12,7 +12,7 @@ MixerChannel::MixerChannel(QString name, QColor color, bool isStereo, quint16 nu
     label = new QLabel(name, this);
     label->setFixedHeight(20);
     label->setStyleSheet(QString("font-size:10px; color:#fff; background-color: rgb(%1, %2, %3);")
-                             .arg(color.red()).arg(color.green()).arg(color.blue()));
+                             .arg(color[type][0]).arg(color[type][1]).arg(color[type][2]));
     label->setAutoFillBackground(true);
     label->setAlignment(Qt::AlignCenter);
     layout->addWidget(label);

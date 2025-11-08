@@ -62,25 +62,10 @@ void MixerWidget::load() {
                 QJsonObject obj = channel.toObject();
                 qDebug() << "Appending channel: " << obj["n"].toString();
 
-                QColor color;
-                switch (obj["t"].toInt()) {
-                case 0:
-                    color.setRgb(50, 150, 50);
-                    break;
-                case 1:
-                    color.setRgb(200, 0, 0);
-                    break;
-                case 2:
-                    color.setRgb(170, 170, 0);
-                    break;
-                case 3:
-                    color.setRgb(0, 0, 0);
-                    break;
-                }
 
                 MixerChannel* newChannel = new MixerChannel(obj["n"].toString(),
-                                                            color, obj["st"].toBool(),
-                                                            index, this);
+                                                            static_cast<MixerChannel::ChannelType>(obj["t"].toInt()),
+                                                            obj["st"].toBool(), index, this);
                 layout->addWidget(newChannel);
                 connect(newChannel, &MixerChannel::faderMoved, this, [this, newChannel](const quint16 number, int8_t value){
                     QSignalBlocker blocker(newChannel);
